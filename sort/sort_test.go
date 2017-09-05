@@ -13,7 +13,7 @@ func TestQuickSort(t *testing.T) {
 	assert := require.New(t)
 	seed := time.Now().Unix()
 	r := rand.New(rand.NewSource(seed))
-	t.Logf("seed: %d", r)
+	t.Logf("seed: %d", seed)
 
 	const rounds = 1024
 	const maxLen = 1024

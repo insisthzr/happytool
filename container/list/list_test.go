@@ -32,7 +32,6 @@ func TestList(t *testing.T) {
 	wants := []int{1, 2, 3}
 	i := 0
 	list.For(func(value interface{}) bool {
-		t.Logf("value: %v", value)
 		assert.Equal(wants[i], value.(int))
 		i++
 		return true

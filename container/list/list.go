@@ -120,8 +120,12 @@ func (l *List) PopBack() (interface{}, bool) {
 }
 
 func (l *List) For(fn func(value interface{}) bool) {
+	if l.Len() == 0 {
+		return
+	}
 	for elem := l.root.next; elem != nil; elem = elem.Next() {
-		if !fn(elem.Value) {
+		conti := fn(elem.Value)
+		if !conti {
 			break
 		}
 	}
