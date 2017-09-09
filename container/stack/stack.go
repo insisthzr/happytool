@@ -43,7 +43,7 @@ type Config struct {
 }
 
 var (
-	DefaultConfig = &Config{
+	DefaultConfig = Config{
 		Capacity: 16,
 	}
 )
@@ -52,17 +52,14 @@ func NewStack() *Stack {
 	return NewStackWithConfig(DefaultConfig)
 }
 
-func NewStackWithConfig(config *Config) *Stack {
-	if config == nil {
-		return newStackWithConfig(DefaultConfig)
-	}
+func NewStackWithConfig(config Config) *Stack {
 	if config.Capacity == 0 {
 		config.Capacity = DefaultConfig.Capacity
 	}
 	return newStackWithConfig(config)
 }
 
-func newStackWithConfig(config *Config) *Stack {
+func newStackWithConfig(config Config) *Stack {
 	return &Stack{
 		data: make([]interface{}, 0, config.Capacity),
 	}
@@ -105,6 +102,6 @@ func NewStringStack() *StringStack {
 	return &StringStack{stack: NewStack()}
 }
 
-func NewStringStackWithConfig(config *Config) *StringStack {
+func NewStringStackWithConfig(config Config) *StringStack {
 	return &StringStack{stack: NewStackWithConfig(config)}
 }

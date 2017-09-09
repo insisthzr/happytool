@@ -27,7 +27,7 @@ type Config struct {
 }
 
 var (
-	DefaultConfig = &Config{
+	DefaultConfig = Config{
 		Capacity: 16,
 	}
 )
@@ -94,7 +94,7 @@ func setToList(list *list.List, key Interface, value interface{}) bool {
 	return !ok
 }
 
-func NewTableWithConfig(config *Config) *Table {
+func NewTableWithConfig(config Config) *Table {
 	if config.Capacity == 0 {
 		config.Capacity = DefaultConfig.Capacity
 	}
@@ -135,7 +135,7 @@ func (t *IntTable) Set(key int, value interface{}) {
 	t.table.Set(Int(key), value)
 }
 
-func NewIntTableWithConfig(config *Config) *IntTable {
+func NewIntTableWithConfig(config Config) *IntTable {
 	if config.Capacity == 0 {
 		config.Capacity = DefaultConfig.Capacity
 	}
