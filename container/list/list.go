@@ -1,5 +1,9 @@
 package list
 
+import (
+	"encoding/json"
+)
+
 type Element struct {
 	prev  *Element
 	next  *Element
@@ -119,16 +123,27 @@ func (l *List) PopBack() (interface{}, bool) {
 	return l.Remove(l.root.prev).Value, true
 }
 
-func (l *List) For(fn func(value interface{}) bool) {
+func (l *List) For(fn func(*Element) bool) {
 	if l.Len() == 0 {
 		return
 	}
 	for elem := l.root.next; elem != nil; elem = elem.Next() {
-		conti := fn(elem.Value)
+		conti := fn(elem)
 		if !conti {
 			break
 		}
 	}
+}
+
+func (l *List) String() string {
+	str := "["
+	l.For(func(elem *Element) bool {
+		b, _ := json.Marshal(elem.Value)
+		str += string(b) + ","
+		return true
+	})
+	str += "]"
+	return str
 }
 
 func NewList() *List {

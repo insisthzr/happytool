@@ -31,8 +31,8 @@ func TestList(t *testing.T) {
 
 	wants := []int{1, 2, 3}
 	i := 0
-	list.For(func(value interface{}) bool {
-		assert.Equal(wants[i], value.(int))
+	list.For(func(elem *Element) bool {
+		assert.Equal(wants[i], elem.Value.(int))
 		i++
 		return true
 	})

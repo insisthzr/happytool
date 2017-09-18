@@ -1,6 +1,8 @@
 package table
 
 import (
+	"fmt"
+
 	"github.com/insisthzr/happytool/container/list"
 )
 
@@ -9,7 +11,8 @@ func hash(key Interface) int {
 		return 0
 	}
 	h := key.HashCode()
-	return h ^ (h >> 16) //?
+	return h
+	//return h ^ (h >> 16) //?
 }
 
 type Interface interface {
@@ -23,19 +26,52 @@ type element struct {
 }
 
 type Config struct {
-	Capacity int
+	Capacity   int
+	LoadFactor float64
 }
 
 var (
 	DefaultConfig = Config{
-		Capacity: 16,
+		Capacity:   1,
+		LoadFactor: 0.75,
 	}
 )
 
 type Table struct {
-	data     []*list.List
-	capacity int
-	length   int
+	data       []*list.List
+	capacity   int
+	length     int
+	loadFactor float64
+}
+
+func (t *Table) String() string {
+	return fmt.Sprintf("{Data: %v, Capacity: %d, Length: %d, LoadFactor: %f}",
+		t.data, t.capacity, t.length, t.loadFactor)
+}
+
+func (t *Table) resize() {
+	oldCap := t.capacity
+	newCap := 2 * oldCap
+	newData := make([]*list.List, newCap)
+	for i := 0; i < oldCap; i++ {
+		l := t.data[i]
+		if l == nil {
+			continue
+		}
+		l.For(func(e *list.Element) bool {
+			elem := e.Value.(*element)
+			newI := hash(elem.key) % newCap
+			newL := newData[newI]
+			if newL == nil {
+				newL = list.NewList()
+			}
+			newL.PushBack(elem)
+			newData[newI] = newL
+			return true
+		})
+	}
+	t.data = newData
+	t.capacity = newCap
 }
 
 func (t *Table) Get(key Interface) (interface{}, bool) {
@@ -59,14 +95,17 @@ func (t *Table) Set(key Interface, value interface{}) {
 	new := setToList(l, key, value)
 	if new {
 		t.length++
+		if float64(t.length) >= float64(t.capacity)*t.loadFactor {
+			t.resize()
+		}
 	}
 }
 
 func getFromList(l *list.List, key Interface) (interface{}, bool) {
 	var value interface{}
 	var ok bool
-	l.For(func(val interface{}) bool {
-		elem := val.(*element)
+	l.For(func(e *list.Element) bool {
+		elem := e.Value.(*element)
 		if elem.key.Equals(key) {
 			value = elem.value
 			ok = true
@@ -77,10 +116,10 @@ func getFromList(l *list.List, key Interface) (interface{}, bool) {
 	return value, ok
 }
 
-func setToList(list *list.List, key Interface, value interface{}) bool {
+func setToList(l *list.List, key Interface, value interface{}) bool {
 	var ok bool
-	list.For(func(val interface{}) bool {
-		elem := val.(*element)
+	l.For(func(e *list.Element) bool {
+		elem := e.Value.(*element)
 		if elem.key.Equals(key) {
 			ok = true
 			elem.value = value
@@ -89,7 +128,7 @@ func setToList(list *list.List, key Interface, value interface{}) bool {
 		return true
 	})
 	if !ok {
-		list.PushBack(&element{key: key, value: value})
+		l.PushBack(&element{key: key, value: value})
 	}
 	return !ok
 }
@@ -98,9 +137,13 @@ func NewTableWithConfig(config Config) *Table {
 	if config.Capacity == 0 {
 		config.Capacity = DefaultConfig.Capacity
 	}
+	if config.LoadFactor == 0 {
+		config.LoadFactor = DefaultConfig.LoadFactor
+	}
 	return &Table{
-		capacity: config.Capacity,
-		data:     make([]*list.List, config.Capacity),
+		capacity:   config.Capacity,
+		loadFactor: config.LoadFactor,
+		data:       make([]*list.List, config.Capacity),
 	}
 }
 
@@ -136,13 +179,7 @@ func (t *IntTable) Set(key int, value interface{}) {
 }
 
 func NewIntTableWithConfig(config Config) *IntTable {
-	if config.Capacity == 0 {
-		config.Capacity = DefaultConfig.Capacity
-	}
-	table := &Table{
-		capacity: config.Capacity,
-		data:     make([]*list.List, config.Capacity),
-	}
+	table := NewTableWithConfig(config)
 	return &IntTable{
 		table: table,
 	}
