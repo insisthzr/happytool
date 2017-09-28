@@ -84,7 +84,7 @@ func (t *Table) Get(key Interface) (interface{}, bool) {
 	return getFromList(l, key)
 }
 
-func (t *Table) Set(key Interface, value interface{}) {
+func (t *Table) Set(key Interface, value interface{}) bool {
 	h := hash(key)
 	index := h % t.capacity
 	l := t.data[index]
@@ -99,6 +99,18 @@ func (t *Table) Set(key Interface, value interface{}) {
 			t.resize()
 		}
 	}
+	return new
+}
+
+func (t *Table) Delete(key Interface) bool {
+	h := hash(key)
+	i := h % t.capacity
+	l := t.data[i]
+	if l == nil || l.Len() == 0 {
+		return false
+	}
+	ok := deleteFromList(l, key)
+	return ok
 }
 
 func getFromList(l *list.List, key Interface) (interface{}, bool) {
@@ -131,6 +143,25 @@ func setToList(l *list.List, key Interface, value interface{}) bool {
 		l.PushBack(&element{key: key, value: value})
 	}
 	return !ok
+}
+
+func deleteFromList(l *list.List, key Interface) bool {
+	var val *list.Element
+	l.For(func(e *list.Element) bool {
+		elem := e.Value.(*element)
+		if elem.key.Equals(key) {
+			val = e
+			return false
+		}
+		return true
+	})
+	if val == nil {
+		return false
+	}
+	if l.Remove(val) == nil {
+		panic("the element going to be deleted not in the list")
+	}
+	return true
 }
 
 func NewTableWithConfig(config Config) *Table {
@@ -174,8 +205,12 @@ func (t *IntTable) Get(key int) (interface{}, bool) {
 	return value, ok
 }
 
-func (t *IntTable) Set(key int, value interface{}) {
-	t.table.Set(Int(key), value)
+func (t *IntTable) Set(key int, value interface{}) bool {
+	return t.table.Set(Int(key), value)
+}
+
+func (t *IntTable) Delete(key int) bool {
+	return t.table.Delete(Int(key))
 }
 
 func NewIntTableWithConfig(config Config) *IntTable {
@@ -187,4 +222,55 @@ func NewIntTableWithConfig(config Config) *IntTable {
 
 func NewIntTable() *IntTable {
 	return NewIntTableWithConfig(DefaultConfig)
+}
+
+type String string
+
+func (s String) HashCode() int {
+	hash := 0
+	exp := 1
+	for i := len(s) - 1; i >= 0; i-- {
+		hash += int(s[i]) * exp //now use unicode,use utf-8?
+		exp *= 31
+	}
+	if hash < 0 {
+		return -hash
+	}
+	return hash
+}
+
+func (s String) Equals(other Interface) bool {
+	otherStr, ok := other.(String)
+	if !ok {
+		return false
+	}
+	return string(s) == string(otherStr)
+}
+
+type StringTable struct {
+	table *Table
+}
+
+func (t *StringTable) Get(key string) (interface{}, bool) {
+	value, ok := t.table.Get(String(key))
+	return value, ok
+}
+
+func (t *StringTable) Set(key string, value interface{}) bool {
+	return t.table.Set(String(key), value)
+}
+
+func (t *StringTable) Delete(key string) bool {
+	return t.table.Delete(String(key))
+}
+
+func NewStringTableWithConfig(config Config) *StringTable {
+	table := NewTableWithConfig(config)
+	return &StringTable{
+		table: table,
+	}
+}
+
+func NewStringTable() *StringTable {
+	return NewStringTableWithConfig(DefaultConfig)
 }
