@@ -2,6 +2,7 @@ package stack
 
 import (
 	"math/rand"
+	"strconv"
 	"testing"
 	"time"
 
@@ -40,6 +41,7 @@ func TestStack(t *testing.T) {
 	const numRound = 1024 * 1024
 	assert := require.New(t)
 	now := time.Now().Unix()
+	t.Log("seed", now)
 	opRand := NewStackOpRand(now)
 	nRand := rand.New(rand.NewSource(now))
 	trustStack := []int{}
@@ -68,4 +70,50 @@ func TestStack(t *testing.T) {
 			panic("unreachable")
 		}
 	}
+
+	stack = NewStack()
+	objs := []interface{}{1, "2", 3.0}
+	stack.Push(objs[0])
+	stack.Push(objs[1])
+	stack.Push(objs[2])
+	i := 0
+	stack.For(func(val interface{}) bool {
+		assert.Equal(objs[i], val)
+		i++
+		return true
+	})
+}
+
+func TestStringStack(t *testing.T) {
+	assert := require.New(t)
+	stack := NewStringStack()
+
+	stack.Push("1")
+	str, ok := stack.Pop()
+	assert.True(ok)
+	assert.Equal("1", str)
+	str, ok = stack.Pop()
+	assert.False(ok)
+	val, ok := stack.Top()
+	assert.False(ok)
+	stack.Push("1")
+	stack.Push("2")
+	stack.Push("3")
+	stack.Push("4")
+	val, ok = stack.Top()
+	assert.True(ok)
+	assert.Equal("4", val)
+	l := stack.Len()
+	assert.Equal(4, l)
+	var i int64 = 1
+	stack.For(func(val string) bool {
+		assert.Equal(strconv.FormatInt(i, 10), val)
+		i++
+		return true
+	})
+
+	stack = NewStringStackWithConfig(Config{
+		Capacity: 1024,
+	})
+	assert.Equal(1024, cap(stack.stack.data))
 }

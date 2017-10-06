@@ -3,6 +3,7 @@ package heap
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -23,6 +24,9 @@ func checkHeap(h Interface) bool {
 
 func TestIntHeap(t *testing.T) {
 	assert := require.New(t)
+	seed := time.Now().Unix()
+	t.Log("seed:", seed)
+	r := rand.New(rand.NewSource(seed))
 	heap := NewIntHeap()
 	Init(heap)
 	ok := checkHeap(heap)
@@ -30,19 +34,18 @@ func TestIntHeap(t *testing.T) {
 
 	const round = 1024 * 1024
 	for i := 0; i < round; i++ {
-		op := rand.Intn(3)
+		op := r.Intn(3)
 		switch op {
 		case 0:
-			heap.Push(rand.Int())
+			Push(heap, r.Int())
 		case 1:
 			if heap.Len() > 0 {
-				heap.Pop()
+				Pop(heap)
 			}
 		case 2:
 			if heap.Len() > 0 {
-				j := rand.Intn(heap.Len())
-				_, ok := heap.Remove(j)
-				assert.True(ok)
+				j := r.Intn(heap.Len())
+				Remove(heap, j)
 			}
 		}
 		checkHeap(heap)

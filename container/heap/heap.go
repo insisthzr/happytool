@@ -104,14 +104,6 @@ func (h *IntHeap) Pop() interface{} {
 	return x
 }
 
-func (h *IntHeap) Remove(i int) (interface{}, bool) {
-	if i < 0 || i >= h.Len() {
-		return nil, false
-	}
-	val := Remove(h, i)
-	return val, true
-}
-
 func NewIntHeap() *IntHeap {
 	heap := make(IntHeap, 0)
 	return &heap

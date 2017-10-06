@@ -86,6 +86,9 @@ func (s *StringStack) Push(value string) {
 
 func (s *StringStack) Pop() (string, bool) {
 	value, ok := s.stack.Pop()
+	if !ok {
+		return "", false
+	}
 	return value.(string), ok
 }
 
