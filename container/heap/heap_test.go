@@ -48,6 +48,6 @@ func TestIntHeap(t *testing.T) {
 				Remove(heap, j)
 			}
 		}
-		checkHeap(heap)
+		assert.True(checkHeap(heap))
 	}
 }
